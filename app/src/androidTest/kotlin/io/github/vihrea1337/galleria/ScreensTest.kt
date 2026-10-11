@@ -19,6 +19,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.vihrea1337.galleria.data.ColorFilter
 import io.github.vihrea1337.galleria.model.Artwork
 import io.github.vihrea1337.galleria.model.ArtworkDetails
 import io.github.vihrea1337.galleria.ui.detail.DetailScreen
@@ -26,6 +27,7 @@ import io.github.vihrea1337.galleria.ui.detail.DetailUiState
 import io.github.vihrea1337.galleria.ui.favorites.FavoritesScreen
 import io.github.vihrea1337.galleria.ui.feed.Collection
 import io.github.vihrea1337.galleria.ui.feed.FeedScreen
+import io.github.vihrea1337.galleria.ui.feed.FeedUiState
 import io.github.vihrea1337.galleria.ui.theme.GalleriaTheme
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
@@ -52,19 +54,28 @@ class ScreensTest {
         placeholder = null, dominantColor = 0xFF3A6B80, altText = null,
     )
 
-    private fun feed(items: List<Artwork>, onOpen: (Artwork) -> Unit = {}, onSearch: (String) -> Unit = {}) {
+    private fun feed(
+        items: List<Artwork>,
+        onOpen: (Artwork) -> Unit = {},
+        onSearch: (String) -> Unit = {},
+        onSubmit: (String) -> Unit = {},
+        onColor: (ColorFilter) -> Unit = {},
+        suggestions: List<String> = emptyList(),
+        daily: Artwork? = null,
+    ) {
         val notLoading = LoadStates(LoadState.NotLoading(true), LoadState.NotLoading(true), LoadState.NotLoading(true))
         compose.setContent {
             GalleriaTheme {
                 val paging = flowOf(PagingData.from(items, sourceLoadStates = notLoading)).collectAsLazyPagingItems()
                 var search by remember { mutableStateOf("") }
                 FeedScreen(
-                    search = search,
+                    state = FeedUiState(search = search, collection = Collection.All, suggestions = suggestions, artworkOfTheDay = daily),
                     onSearchChange = { search = it; onSearch(it) },
-                    collection = Collection.All,
+                    onSearchSubmit = onSubmit,
                     onCollectionSelect = {},
+                    onColorSelect = onColor,
                     items = paging,
-                    onOpen = onOpen,
+                    onOpen = { artwork, _ -> onOpen(artwork) },
                     gridState = rememberLazyStaggeredGridState(),
                     contentPadding = PaddingValues(),
                 )
@@ -98,6 +109,32 @@ class ScreensTest {
         compose.onNodeWithTag("search").performTextInput("monet")
         compose.onNodeWithContentDescription(str(R.string.search_clear)).performClick()
         assertEquals(listOf("monet", ""), typed)
+    }
+
+    @Test
+    fun suggestionsAppearWhileTypingAndSearchOnTap() {
+        val submitted = mutableListOf<String>()
+        feed(listOf(artwork(1, "Water Lilies")), onSubmit = { submitted += it }, suggestions = listOf("Claude Monet", "Piet Mondrian"))
+        compose.onNodeWithTag("search").performClick()
+        compose.onNodeWithText("Claude Monet").assertIsDisplayed().performClick()
+        assertEquals(listOf("Claude Monet"), submitted)
+    }
+
+    @Test
+    fun colorSwatchSelectsColor() {
+        val picked = mutableListOf<ColorFilter>()
+        feed(listOf(artwork(1, "Water Lilies")), onColor = { picked += it })
+        compose.onNodeWithContentDescription(str(R.string.color_blue)).performClick()
+        assertEquals(listOf(ColorFilter.Blue), picked)
+    }
+
+    @Test
+    fun artworkOfTheDayCardOpensTheArtwork() {
+        var opened: Artwork? = null
+        feed(listOf(artwork(1, "Water Lilies")), onOpen = { opened = it }, daily = artwork(9, "Paris Street; Rainy Day"))
+        compose.onNodeWithText(str(R.string.artwork_of_the_day).uppercase()).assertIsDisplayed()
+        compose.onNodeWithTag("artwork-of-the-day").performClick()
+        assertEquals(9L, opened?.id)
     }
 
     @Test
