@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -152,10 +153,17 @@ fun DetailScreen(
                         .navigationBarsPadding(),
                 ) {
                     TopBar(state, onBack, onToggleFavorite, onShare)
-                    if (artwork != null) {
-                        ArtworkImage(artwork, origin, scroll, onClick = { fullscreen = true })
-                        Info(artwork, state.details, onArtist)
-                    }
+                    if (artwork != null) ArtworkImage(artwork, origin, scroll, onClick = { fullscreen = true })
+                    // Всё под картиной — «лист» со своим фоном: при прокрутке он наезжает на картину
+                    // (она уезжает медленнее — параллакс), и текст не ложится поверх изображения.
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                            .background(base)
+                            .padding(top = 8.dp),
+                    ) {
+                    if (artwork != null) Info(artwork, state.details, onArtist)
                     when {
                         state.details != null -> Description(state.details)
                         state.loading -> DescriptionSkeleton()
@@ -199,6 +207,7 @@ fun DetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
                     )
+                    }
                 }
             }
         }

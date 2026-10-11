@@ -1,6 +1,6 @@
 # Galleria 🖼
 
-**An Android art gallery: 60,000+ public-domain works from the Art Institute of Chicago — endless feed, search, a smooth "tile → artwork" transition, pinch-to-zoom and offline favorites.**
+**An Android art gallery: 60,000+ public-domain works from the Art Institute of Chicago — endless feed, search by text and by color, a smooth "tile → artwork" transition, deep zoom down to the brushstrokes, an immersive slideshow, a home-screen widget and offline favorites.**
 
 ![CI](https://github.com/vihrea1337/galleria/actions/workflows/ci.yml/badge.svg)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white)
@@ -8,18 +8,31 @@
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 <p align="center">
-  <img src="docs/screenshots/feed.jpg" width="24%" alt="Feed: staggered grid of artworks with collection chips" />
-  <img src="docs/screenshots/detail.jpg" width="24%" alt="Artwork screen: image, facts and the museum's description" />
-  <img src="docs/screenshots/search.jpg" width="24%" alt="Search results for Hokusai" />
-  <img src="docs/screenshots/fullscreen.jpg" width="24%" alt="Full-screen viewer with zoom" />
+  <img src="docs/screenshots/feed-v11.jpg" width="24%" alt="Feed: artwork of the day, collections and search by color" />
+  <img src="docs/screenshots/detail-v11.jpg" width="24%" alt="Artwork screen tinted by the painting, artist link" />
+  <img src="docs/screenshots/deep-zoom.jpg" width="24%" alt="Deep zoom: IIIF tiles of the original, canvas texture visible" />
+  <img src="docs/screenshots/widget.jpg" width="24%" alt="Artwork of the day widget on the home screen" />
 </p>
 <p align="center">
+  <img src="docs/screenshots/search-suggestions.jpg" width="24%" alt="Search suggestions from the museum" />
+  <img src="docs/screenshots/search.jpg" width="24%" alt="Search results for Hokusai" />
   <img src="docs/screenshots/feed-dark.jpg" width="24%" alt="Feed in dark theme" />
-  <img src="docs/screenshots/detail-dark.jpg" width="24%" alt="Artwork screen in dark theme, background tinted by the painting" />
-  <img src="docs/screenshots/favorites.jpg" width="24%" alt="Favorites" />
+  <img src="docs/screenshots/detail-dark.jpg" width="24%" alt="Artwork screen in dark theme" />
 </p>
 
 ## Features
+
+**New in 1.1**
+
+- 🔬 **Deep zoom** — beyond the base image the viewer loads only the visible **IIIF tiles** of the original at the right level (`data/Iiif.kt`, own Canvas renderer): zoom up to pixel-for-pixel with an 8,800 px original and see the canvas weave and brushstrokes, with a live "detail: N % of the original" badge
+- 🎨 **Search by color** — swatches above the feed filter by the painting's dominant hue (HSL ranges, red wraps around 0°); combine with search and collections
+- 🌅 **Artwork of the day** — a hero card above the feed (same painting for everyone that day) and a **Glance home-screen widget**, pinnable from the app, updated daily by the system
+- 🎞 **Immersive mode** — full-screen vertical pager of paintings with a slow Ken Burns camera, a blurred backdrop made from the painting itself and auto-advance
+- 🧑‍🎨 **Artist screen** — life years, biography and all public-domain works; the artwork screen gets "More by the artist" and "Similar in color" rows, an "On view · Gallery 243" badge, a parallax image and an accent color taken from the painting
+- 🔎 **Search that doesn't fire on every letter** — 650 ms pause, at least 3 letters, "Search" on the keyboard goes at once, museum autocomplete suggestions; old results stay (dimmed) under a thin progress bar instead of a jumping spinner
+- 🛟 **Resilient to the museum's API** — HTTP cache for API responses plus "serve the last saved answer" on no network or 5xx (the API sometimes answers 504 under load)
+
+**1.0**
 
 - 🧱 **Endless staggered feed** (`LazyVerticalStaggeredGrid` + Paging 3) — tiles have the right height *before* the image loads (aspect ratio comes from the API), so the feed never jumps; a tiny blurred preview (`lqip`) fills the tile until the real image fades in
 - 🔎 **Search with debounce** (400 ms) — stale requests are cancelled with `flatMapLatest`; clearing the field goes back instantly; collections (Impressionism, Japan, Portraits…) as chips
@@ -44,7 +57,8 @@
 | Images | Coil 3 on the same OkHttp client as the API (memory + disk cache, crossfade) |
 | Network | Retrofit + OkHttp + kotlinx.serialization |
 | Storage | Room (favorites) · `SavedStateHandle` (search and collection survive process death) |
-| Quality | 27 JVM tests (mapper on real API responses, `PagingSource` with `TestPager`, ViewModels with virtual time and Turbine) · 6 Compose UI tests on an emulator in CI · Android Lint · R8 in release |
+| Widget | Glance (`updatePeriodMillis`, no WorkManager needed), `requestPinAppWidget` |
+| Quality | 49 JVM tests (incl. tile math, `SearchQuery` → JSON, OkHttp cache on MockWebServer) · 9 Compose UI tests · Room AutoMigration 1→2 · earlier: 27 JVM tests (mapper on real API responses, `PagingSource` with `TestPager`, ViewModels with virtual time and Turbine) · 6 Compose UI tests on an emulator in CI · Android Lint · R8 in release |
 
 ## Architecture
 
@@ -77,6 +91,9 @@ graph LR
 | Explicit Coil `memoryCacheKey` | Coil 3's default memory key includes the requested size, so the detail screen could not find the feed thumbnail by URL; an explicit key makes the thumbnail a real placeholder |
 | Favorites stored whole, not as ids | Opens offline and doesn't depend on what the API returns later |
 | Search + collection in `SavedStateHandle` | Survive rotation **and** process death |
+| Own IIIF tile renderer instead of a zoom library | The museum serves tiles natively; loading only visible 256 px tiles of the right level keeps memory flat even for 75-megapixel originals — and it's a nice thing to explain |
+| API query as JSON `params` (`SearchQuery.toParams`) | The search endpoint accepts Elasticsearch-style queries: text in `q` ranks, filters (public domain, color ranges, artist, type) cut — one pure, tested function |
+| Strip `Vary`/`no-cache` from API responses in a network interceptor | The museum marks everything uncacheable; for a read-only catalogue a 10-minute cache plus stale-on-error makes the app usable when the API is slow |
 | No offline cache for the feed | Galleria is about UI; offline-first sync is already shown in my other projects (SkyCast, Expenses, DevLog) |
 
 ## Build

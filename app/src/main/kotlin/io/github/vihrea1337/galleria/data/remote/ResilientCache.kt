@@ -30,6 +30,10 @@ class CacheApiResponses(private val apiHost: String) : Interceptor {
             .header("Cache-Control", "public, max-age=$FRESH_SECONDS")
             .removeHeader("Pragma")
             .removeHeader("Expires")
+            // С `Vary: *` OkHttp не кэширует ответ никогда; у API музея содержимое от заголовков
+            // запроса не зависит — убираем, иначе кэш молча пустой.
+            .removeHeader("Vary")
+            .removeHeader("Set-Cookie")
             .build()
     }
 }

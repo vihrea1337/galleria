@@ -48,6 +48,14 @@ class ResilientCacheTest {
     }
 
     @Test
+    fun `Vary star from the server does not disable the cache`() {
+        server.enqueue(MockResponse().setBody("page").addHeader("Cache-Control", "no-cache").addHeader("Vary", "*"))
+        assertEquals(200 to "page", get())
+        assertEquals(200 to "page", get())
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
     fun `museum 504 - the last saved answer instead of an error`() {
         server.enqueue(MockResponse().setBody("saved"))
         get()
