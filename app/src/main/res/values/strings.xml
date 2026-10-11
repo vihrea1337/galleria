@@ -65,4 +65,8 @@
     <string name="artist_bio_less">Show less</string>
     <string name="artist_error">Couldn’t load the artist</string>
     <string name="zoom_detail">Detail: %1$d%% of the original</string>
+    <string name="immersive">Immersive slideshow</string>
+    <string name="immersive_pause">Pause</string>
+    <string name="immersive_play">Play</string>
+    <string name="immersive_hint">Swipe up for the next one · tap for details</string>
 </resources>

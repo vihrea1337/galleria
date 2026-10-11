@@ -37,7 +37,9 @@ import androidx.navigation.toRoute
 import io.github.vihrea1337.galleria.R
 import io.github.vihrea1337.galleria.ui.common.LocalNavAnimatedVisibilityScope
 import io.github.vihrea1337.galleria.ui.common.LocalSharedTransitionScope
+import io.github.vihrea1337.galleria.ui.common.ORIGIN_IMMERSIVE
 import io.github.vihrea1337.galleria.ui.common.ORIGIN_TILE
+import io.github.vihrea1337.galleria.ui.immersive.ImmersiveRoute
 import io.github.vihrea1337.galleria.ui.artist.ArtistScreenRoute
 import io.github.vihrea1337.galleria.ui.detail.DetailRoute
 import io.github.vihrea1337.galleria.ui.favorites.FavoritesRoute
@@ -54,6 +56,10 @@ data object Home
  */
 @Serializable
 data class Detail(val id: Long, val origin: String = ORIGIN_TILE)
+
+/** «Погружение»: та же выдача, что в ленте (text/color читает ImmersiveViewModel), во весь экран. */
+@Serializable
+data class Immersive(val text: String? = null, val color: String? = null)
 
 /** Экран художника: биография и все его работы. `id` читает ArtistViewModel. */
 @Serializable
@@ -81,7 +87,10 @@ fun GalleriaNavHost() {
             NavHost(navController, startDestination = Home) {
                 composable<Home> {
                     CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
-                        HomeScreen(onOpen = { id, origin -> navController.navigate(Detail(id, origin)) })
+                        HomeScreen(
+                            onOpen = { id, origin -> navController.navigate(Detail(id, origin)) },
+                            onImmersive = { text, color -> navController.navigate(Immersive(text, color)) },
+                        )
                     }
                 }
                 composable<Detail> { entry ->
@@ -94,6 +103,12 @@ fun GalleriaNavHost() {
                             onArtist = { id, name -> navController.navigate(ArtistRoute(id, name)) },
                         )
                     }
+                }
+                composable<Immersive> {
+                    ImmersiveRoute(
+                        onBack = { navController.popBackStack() },
+                        onOpen = { id -> navController.navigate(Detail(id, ORIGIN_IMMERSIVE)) },
+                    )
                 }
                 composable<ArtistRoute> { entry ->
                     val route = entry.toRoute<ArtistRoute>()
@@ -111,7 +126,7 @@ fun GalleriaNavHost() {
 }
 
 @Composable
-private fun HomeScreen(onOpen: (Long, String) -> Unit) {
+private fun HomeScreen(onOpen: (Long, String) -> Unit, onImmersive: (String?, String?) -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.Gallery) }
     // Позиции лент — здесь, а не во вкладках: переключился туда-обратно — лента на месте.
     val feedGrid = rememberLazyStaggeredGridState()
@@ -143,7 +158,12 @@ private fun HomeScreen(onOpen: (Long, String) -> Unit) {
         },
     ) {
         when (tab) {
-            Tab.Gallery -> FeedRoute(onOpen = { artwork, origin -> onOpen(artwork.id, origin) }, contentPadding = bottomInset, gridState = feedGrid)
+            Tab.Gallery -> FeedRoute(
+                onOpen = { artwork, origin -> onOpen(artwork.id, origin) },
+                onImmersive = onImmersive,
+                contentPadding = bottomInset,
+                gridState = feedGrid,
+            )
             Tab.Favorites -> FavoritesRoute(onOpen = { onOpen(it.id, ORIGIN_TILE) }, contentPadding = bottomInset, gridState = favoritesGrid)
         }
     }

@@ -47,8 +47,10 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.NorthWest
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -125,6 +127,7 @@ data class FeedUiState(
 @Composable
 fun FeedRoute(
     onOpen: (Artwork, String) -> Unit,
+    onImmersive: (text: String?, color: String?) -> Unit,
     contentPadding: PaddingValues,
     gridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     viewModel: FeedViewModel = hiltViewModel(),
@@ -150,6 +153,7 @@ fun FeedRoute(
         ),
         onSearchChange = viewModel::onSearchChange,
         onSearchSubmit = viewModel::onSearchSubmit,
+        onImmersive = { onImmersive(query.text, query.color?.name) },
         onCollectionSelect = viewModel::onCollectionSelect,
         onColorSelect = viewModel::onColorSelect,
         items = items,
@@ -174,6 +178,7 @@ fun FeedScreen(
     onOpen: (Artwork, String) -> Unit,
     gridState: LazyStaggeredGridState,
     contentPadding: PaddingValues,
+    onImmersive: () -> Unit = {},
 ) {
     val refresh = items.loadState.refresh
     val empty = items.itemCount == 0
@@ -186,7 +191,7 @@ fun FeedScreen(
     val dim by animateFloatAsState(if (reloading && !pulled) 0.45f else 1f, tween(250), label = "dim")
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Header(state, onSearchChange, onSearchSubmit)
+        Header(state, onSearchChange, onSearchSubmit, onImmersive)
         Box(Modifier.fillMaxWidth().height(3.dp)) {
             if (reloading && !pulled) {
                 LinearProgressIndicator(Modifier.fillMaxWidth().testTag("reloading"))
@@ -260,7 +265,7 @@ fun FeedScreen(
 }
 
 @Composable
-private fun Header(state: FeedUiState, onSearchChange: (String) -> Unit, onSearchSubmit: (String) -> Unit) {
+private fun Header(state: FeedUiState, onSearchChange: (String) -> Unit, onSearchSubmit: (String) -> Unit, onImmersive: () -> Unit) {
     val focus = LocalFocusManager.current
     var focused by remember { mutableStateOf(false) }
     // На широком экране (планшет, альбомная) название и поиск — в одну строку: высота дороже.
@@ -296,14 +301,25 @@ private fun Header(state: FeedUiState, onSearchChange: (String) -> Unit, onSearc
         )
     }
     val title = @Composable { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) }
+    // «Погружение» — та же выдача во весь экран со слайд-шоу.
+    val immersive = @Composable {
+        FilledTonalIconButton(onClick = onImmersive, modifier = Modifier.testTag("immersive-button")) {
+            Icon(Icons.Outlined.Slideshow, contentDescription = stringResource(R.string.immersive))
+        }
+    }
     Column(Modifier.statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = if (wide) 8.dp else 12.dp, bottom = 4.dp)) {
         if (wide) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 title()
                 field(Modifier.weight(1f))
+                immersive()
             }
         } else {
-            title()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                title()
+                Spacer(Modifier.weight(1f))
+                immersive()
+            }
             field(Modifier.fillMaxWidth().padding(top = 12.dp))
         }
         // Подсказки музея (художники, названия) — пока поле в фокусе.
