@@ -1,9 +1,12 @@
 package io.github.vihrea1337.galleria.data
 
+import io.github.vihrea1337.galleria.data.remote.ArtistDto
 import io.github.vihrea1337.galleria.data.remote.ArtworkDto
 import io.github.vihrea1337.galleria.data.remote.ColorDto
+import io.github.vihrea1337.galleria.model.Artist
 import io.github.vihrea1337.galleria.model.Artwork
 import io.github.vihrea1337.galleria.model.ArtworkDetails
+import io.github.vihrea1337.galleria.model.Hsl
 import java.util.Base64
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -52,6 +55,10 @@ fun ArtworkDto.toDetails(): ArtworkDetails? {
     val artwork = toArtwork() ?: return null
     return ArtworkDetails(
         artwork = artwork,
+        artistId = artistId,
+        color = color?.let { Hsl(it.h, it.s, it.l) },
+        type = artworkType,
+        onViewIn = galleryTitle?.takeIf { isOnView == true },
         artistFull = artistDisplay,
         medium = mediumDisplay,
         dimensions = dimensions,
@@ -62,6 +69,18 @@ fun ArtworkDto.toDetails(): ArtworkDetails? {
         description = description?.let(::htmlToText)?.takeIf { it.isNotBlank() },
     )
 }
+
+fun ArtistDto.toArtist() = Artist(
+    id = id,
+    name = title?.trim().orEmpty(),
+    years = when {
+        birthDate != null && deathDate != null -> "$birthDate–$deathDate"
+        birthDate != null -> "$birthDate–"
+        deathDate != null -> "–$deathDate"
+        else -> null
+    },
+    bio = description?.let(::htmlToText)?.takeIf { it.isNotBlank() },
+)
 
 /** `data:image/gif;base64,AAAA` → байты картинки; что-то другое или битое — null. */
 fun decodeDataUri(uri: String): ByteArray? {

@@ -14,14 +14,23 @@ import retrofit2.http.Query
  * дальше — 403 «Invalid number of results». Это учитывает [ArtworkPagingSource].
  */
 interface ArticApi {
+    /** Поиск: всё (текст, фильтры, страница) — в JSON `params`, его собирает [io.github.vihrea1337.galleria.data.toParams]. */
     @GET("artworks/search")
-    suspend fun search(
-        @Query("q") query: String?,
-        @Query("page") page: Int,
-        @Query("limit") limit: Int,
-        @Query("fields") fields: String = LIST_FIELDS,
-        @Query("query[term][is_public_domain]") publicDomain: Boolean = true,
-    ): ArtworkPageDto
+    suspend fun search(@Query("params") params: String): ArtworkPageDto
+
+    /** Художник: годы жизни и биография (HTML). */
+    @GET("agents/{id}")
+    suspend fun artist(
+        @Path("id") id: Long,
+        @Query("fields") fields: String = "id,title,birth_date,death_date,description",
+    ): ArtistResponseDto
+
+    /** Подсказки при наборе: имена художников и названия работ. */
+    @GET("autocomplete")
+    suspend fun autocomplete(
+        @Query("q") query: String,
+        @Query("resources") resources: String = "artworks,agents",
+    ): List<String>
 
     @GET("artworks/{id}")
     suspend fun artwork(
@@ -39,6 +48,7 @@ interface ArticApi {
         // Просим только нужные поля — ответ в разы меньше.
         const val LIST_FIELDS = "id,title,artist_title,date_display,image_id,thumbnail,color"
         const val DETAIL_FIELDS = LIST_FIELDS +
-            ",artist_display,medium_display,dimensions,place_of_origin,credit_line,description,style_title,department_title"
+            ",artist_display,medium_display,dimensions,place_of_origin,credit_line,description,style_title,department_title" +
+            ",artist_id,artwork_type_title,is_on_view,gallery_title"
     }
 }

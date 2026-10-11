@@ -2,6 +2,8 @@ package io.github.vihrea1337.galleria.ui
 
 import androidx.paging.PagingData
 import io.github.vihrea1337.galleria.data.ArtworkRepository
+import io.github.vihrea1337.galleria.data.SearchQuery
+import io.github.vihrea1337.galleria.model.Artist
 import io.github.vihrea1337.galleria.model.Artwork
 import io.github.vihrea1337.galleria.model.ArtworkDetails
 import kotlinx.coroutines.CompletableDeferred
@@ -18,16 +20,24 @@ fun artwork(id: Long, title: String = "Artwork $id") = Artwork(
 
 /** Репозиторий в памяти: запоминает запросы ленты, детали можно «задержать» или уронить. */
 class FakeRepository : ArtworkRepository {
-    val queries = mutableListOf<String?>()
+    val queries = mutableListOf<SearchQuery>()
+    var previews: (SearchQuery) -> List<Artwork> = { emptyList() }
+    var suggestionsFor: (String) -> List<String> = { listOf("$it suggestion") }
+    var daily: Artwork? = artwork(100, "Daily")
     private val favoritesState = MutableStateFlow<List<Artwork>>(emptyList())
     private val recent = mutableMapOf<Long, Artwork>()
     var detailsResult: (Long) -> ArtworkDetails = { ArtworkDetails(artwork(it), "Artist (1850–1900)", "Oil", null, null, null, null, null, "About") }
     var detailsGate: CompletableDeferred<Unit>? = null
 
-    override fun artworks(query: String?): Flow<PagingData<Artwork>> {
+    override fun artworks(query: SearchQuery): Flow<PagingData<Artwork>> {
         queries += query
         return flowOf(PagingData.empty())
     }
+
+    override suspend fun preview(query: SearchQuery, limit: Int): List<Artwork> = previews(query)
+    override suspend fun artist(id: Long) = Artist(id, "Artist $id", "1840–1926", "Bio")
+    override suspend fun suggestions(text: String): List<String> = suggestionsFor(text)
+    override suspend fun artworkOfTheDay(dayOfEpoch: Long): Artwork? = daily
 
     override suspend fun details(id: Long): ArtworkDetails {
         detailsGate?.await()

@@ -18,16 +18,26 @@ import androidx.compose.ui.Modifier
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
-/** Картинка картины `id` — один и тот же ключ в ленте, избранном и на экране картины. */
+/**
+ * Картинка картины `id`. Ключ — `origin-id`: одна и та же картина может быть на экране дважды
+ * (карточка «Картина дня» и плитка ленты), и экран картины должен «прилететь» из той, по которой
+ * нажали. Поэтому маршрут Detail несёт origin.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun Modifier.sharedArtworkImage(id: Long): Modifier {
+fun Modifier.sharedArtworkImage(id: Long, origin: String = ORIGIN_TILE): Modifier {
     val transition = LocalSharedTransitionScope.current ?: return this
     val visibility = LocalNavAnimatedVisibilityScope.current ?: return this
     return with(transition) {
         this@sharedArtworkImage.sharedElement(
-            sharedContentState = rememberSharedContentState(key = "image-$id"),
+            sharedContentState = rememberSharedContentState(key = "$origin-$id"),
             animatedVisibilityScope = visibility,
         )
     }
 }
+
+/** Откуда открыли картину — часть ключа shared element. */
+const val ORIGIN_TILE = "image"
+const val ORIGIN_DAILY = "daily"
+const val ORIGIN_ARTIST_ROW = "artist-row"
+const val ORIGIN_COLOR_ROW = "color-row"

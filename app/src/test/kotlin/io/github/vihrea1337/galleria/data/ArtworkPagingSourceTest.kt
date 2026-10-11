@@ -4,6 +4,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource.LoadResult
 import androidx.paging.testing.TestPager
 import io.github.vihrea1337.galleria.data.remote.ArticApi
+import io.github.vihrea1337.galleria.data.remote.ArtistDto
+import io.github.vihrea1337.galleria.data.remote.ArtistResponseDto
 import io.github.vihrea1337.galleria.data.remote.ArtworkDto
 import io.github.vihrea1337.galleria.data.remote.ArtworkPageDto
 import io.github.vihrea1337.galleria.data.remote.ArtworkResponseDto
@@ -11,6 +13,10 @@ import io.github.vihrea1337.galleria.data.remote.PaginationDto
 import io.github.vihrea1337.galleria.model.Artwork
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -19,12 +25,16 @@ import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
 
-/** Фейковый API: `total` работ, у каждой есть картинка; можно заставить падать. */
+/** Фейковый API: `total` работ, у каждой есть картинка; можно заставить падать. Разбирает JSON `params`. */
 class FakeArticApi(private val total: Int) : ArticApi {
     var failWith: Exception? = null
     val requests = mutableListOf<Triple<String?, Int, Int>>()
 
-    override suspend fun search(query: String?, page: Int, limit: Int, fields: String, publicDomain: Boolean): ArtworkPageDto {
+    override suspend fun search(params: String): ArtworkPageDto {
+        val json = Json.parseToJsonElement(params).jsonObject
+        val query = json["q"]?.jsonPrimitive?.content
+        val page = json.getValue("page").jsonPrimitive.int
+        val limit = json.getValue("limit").jsonPrimitive.int
         requests += Triple(query, page, limit)
         failWith?.let { throw it }
         val from = (page - 1) * limit
@@ -33,13 +43,15 @@ class FakeArticApi(private val total: Int) : ArticApi {
     }
 
     override suspend fun artwork(id: Long, fields: String) = ArtworkResponseDto(ArtworkDto(id = id, title = "#$id", imageId = "img$id"))
+    override suspend fun artist(id: Long, fields: String) = ArtistResponseDto(ArtistDto(id = id, title = "Artist $id"))
+    override suspend fun autocomplete(query: String, resources: String) = listOf("$query 1", "$query 2")
 }
 
 class ArtworkPagingSourceTest {
 
     private val config = PagingConfig(pageSize = 30, initialLoadSize = 30, enablePlaceholders = false)
 
-    private fun pager(api: ArticApi, query: String? = null) = TestPager(config, ArtworkPagingSource(api, query))
+    private fun pager(api: ArticApi, query: String? = null) = TestPager(config, ArtworkPagingSource(api, SearchQuery(text = query)))
 
     @Test
     fun `first page starts at 1 and points to the next`() = runTest {

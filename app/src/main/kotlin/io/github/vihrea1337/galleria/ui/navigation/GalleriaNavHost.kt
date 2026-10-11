@@ -33,9 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import io.github.vihrea1337.galleria.R
 import io.github.vihrea1337.galleria.ui.common.LocalNavAnimatedVisibilityScope
 import io.github.vihrea1337.galleria.ui.common.LocalSharedTransitionScope
+import io.github.vihrea1337.galleria.ui.common.ORIGIN_TILE
+import io.github.vihrea1337.galleria.ui.artist.ArtistScreenRoute
 import io.github.vihrea1337.galleria.ui.detail.DetailRoute
 import io.github.vihrea1337.galleria.ui.favorites.FavoritesRoute
 import io.github.vihrea1337.galleria.ui.feed.FeedRoute
@@ -45,9 +48,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object Home
 
-/** Экран картины. Имя поля `id` читает DetailViewModel из SavedStateHandle. */
+/**
+ * Экран картины. Имя поля `id` читает DetailViewModel из SavedStateHandle; `origin` — откуда
+ * открыли (часть ключа shared element, см. ui/common/SharedElements.kt).
+ */
 @Serializable
-data class Detail(val id: Long)
+data class Detail(val id: Long, val origin: String = ORIGIN_TILE)
+
+/** Экран художника: биография и все его работы. `id` читает ArtistViewModel. */
+@Serializable
+data class ArtistRoute(val id: Long, val name: String)
 
 enum class Tab(@StringRes val label: Int, val icon: ImageVector, val selectedIcon: ImageVector) {
     Gallery(R.string.tab_gallery, Icons.Outlined.PhotoLibrary, Icons.Filled.PhotoLibrary),
@@ -71,12 +81,28 @@ fun GalleriaNavHost() {
             NavHost(navController, startDestination = Home) {
                 composable<Home> {
                     CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
-                        HomeScreen(onOpen = { id -> navController.navigate(Detail(id)) })
+                        HomeScreen(onOpen = { id, origin -> navController.navigate(Detail(id, origin)) })
                     }
                 }
-                composable<Detail> {
+                composable<Detail> { entry ->
+                    val route = entry.toRoute<Detail>()
                     CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
-                        DetailRoute(onBack = { navController.popBackStack() })
+                        DetailRoute(
+                            origin = route.origin,
+                            onBack = { navController.popBackStack() },
+                            onOpen = { id, origin -> navController.navigate(Detail(id, origin)) },
+                            onArtist = { id, name -> navController.navigate(ArtistRoute(id, name)) },
+                        )
+                    }
+                }
+                composable<ArtistRoute> { entry ->
+                    val route = entry.toRoute<ArtistRoute>()
+                    CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+                        ArtistScreenRoute(
+                            name = route.name,
+                            onBack = { navController.popBackStack() },
+                            onOpen = { id, origin -> navController.navigate(Detail(id, origin)) },
+                        )
                     }
                 }
             }
@@ -85,7 +111,7 @@ fun GalleriaNavHost() {
 }
 
 @Composable
-private fun HomeScreen(onOpen: (Long) -> Unit) {
+private fun HomeScreen(onOpen: (Long, String) -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.Gallery) }
     // Позиции лент — здесь, а не во вкладках: переключился туда-обратно — лента на месте.
     val feedGrid = rememberLazyStaggeredGridState()
@@ -117,8 +143,8 @@ private fun HomeScreen(onOpen: (Long) -> Unit) {
         },
     ) {
         when (tab) {
-            Tab.Gallery -> FeedRoute(onOpen = { onOpen(it.id) }, contentPadding = bottomInset, gridState = feedGrid)
-            Tab.Favorites -> FavoritesRoute(onOpen = { onOpen(it.id) }, contentPadding = bottomInset, gridState = favoritesGrid)
+            Tab.Gallery -> FeedRoute(onOpen = { artwork, origin -> onOpen(artwork.id, origin) }, contentPadding = bottomInset, gridState = feedGrid)
+            Tab.Favorites -> FavoritesRoute(onOpen = { onOpen(it.id, ORIGIN_TILE) }, contentPadding = bottomInset, gridState = favoritesGrid)
         }
     }
 }

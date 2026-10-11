@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.vihrea1337.galleria.data.ArtworkRepository
+import io.github.vihrea1337.galleria.data.ColorFilter
+import io.github.vihrea1337.galleria.data.SearchQuery
 import io.github.vihrea1337.galleria.model.Artwork
 import io.github.vihrea1337.galleria.model.ArtworkDetails
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +27,11 @@ data class DetailUiState(
     val loading: Boolean = true,
     val error: Throwable? = null,
     val isFavorite: Boolean = false,
+    /** «Ещё у художника» — пусто, пока не загрузилось или если других работ нет. */
+    val moreByArtist: List<Artwork> = emptyList(),
+    /** «Похожие по цвету» и сам цвет (для подписи и перехода в ленту этого цвета). */
+    val similar: List<Artwork> = emptyList(),
+    val similarColor: ColorFilter? = null,
 )
 
 /**
@@ -55,6 +63,7 @@ class DetailViewModel @Inject constructor(
             try {
                 val details = repository.details(id)
                 loaded.update { it.copy(artwork = details.artwork, details = details, loading = false) }
+                loadRows(details)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -62,6 +71,36 @@ class DetailViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Два ряда под описанием — параллельно и «по возможности»: не загрузились — ряда просто нет,
+     * экран картины от этого не ломается.
+     */
+    private suspend fun loadRows(details: ArtworkDetails) = coroutineScope {
+        details.artistId?.let { artistId ->
+            launch {
+                val list = optional { repository.preview(SearchQuery(artistId = artistId, excludeId = id)) }
+                loaded.update { it.copy(moreByArtist = list) }
+            }
+        }
+        val color = details.color?.let { ColorFilter.nearest(it.h, it.s, it.l) }
+        if (color != null) {
+            launch {
+                val list = optional { repository.preview(SearchQuery(color = color, type = details.type, excludeId = id)) }
+                loaded.update { it.copy(similar = list, similarColor = color) }
+            }
+        }
+    }
+
+    private suspend fun optional(block: suspend () -> List<Artwork>): List<Artwork> = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    fun onArtworkOpen(artwork: Artwork) = repository.remember(artwork)
 
     fun toggleFavorite() {
         val current = state.value

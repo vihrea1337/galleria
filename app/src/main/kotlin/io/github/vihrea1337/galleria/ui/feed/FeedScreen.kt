@@ -1,11 +1,19 @@
 package io.github.vihrea1337.galleria.ui.feed
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,12 +36,15 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.NorthWest
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +52,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,17 +62,28 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,40 +91,71 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import io.github.vihrea1337.galleria.R
+import io.github.vihrea1337.galleria.data.ColorFilter
 import io.github.vihrea1337.galleria.model.Artwork
 import io.github.vihrea1337.galleria.ui.common.ArtworkTile
+import io.github.vihrea1337.galleria.ui.common.ORIGIN_DAILY
+import io.github.vihrea1337.galleria.ui.common.ORIGIN_TILE
 import io.github.vihrea1337.galleria.ui.common.MessageBlock
 import io.github.vihrea1337.galleria.ui.common.TileShape
+import io.github.vihrea1337.galleria.ui.common.backdrop
+import io.github.vihrea1337.galleria.ui.common.displayTitle
 import io.github.vihrea1337.galleria.ui.common.message
+import io.github.vihrea1337.galleria.ui.common.rememberPlaceholder
+import io.github.vihrea1337.galleria.ui.common.sharedArtworkImage
 
 /** Плитки шириной от 160 dp: 2 колонки на телефоне, 3–5 на планшете — по ширине окна. */
 val GridCells = StaggeredGridCells.Adaptive(160.dp)
 
+/** Всё, что лента показывает, кроме самих картин. */
+data class FeedUiState(
+    val search: String = "",
+    /** null — выбран не чипс, а поиск. */
+    val collection: Collection? = Collection.All,
+    val color: ColorFilter? = null,
+    val suggestions: List<String> = emptyList(),
+    /** Показывается только на «чистой» ленте — без поиска и фильтров. */
+    val artworkOfTheDay: Artwork? = null,
+)
+
 @Composable
 fun FeedRoute(
-    onOpen: (Artwork) -> Unit,
+    onOpen: (Artwork, String) -> Unit,
     contentPadding: PaddingValues,
     gridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     viewModel: FeedViewModel = hiltViewModel(),
 ) {
     val search by viewModel.searchText.collectAsStateWithLifecycle()
     val collection by viewModel.collection.collectAsStateWithLifecycle()
+    val color by viewModel.color.collectAsStateWithLifecycle()
     val query by viewModel.activeQuery.collectAsStateWithLifecycle()
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
+    val daily by viewModel.artworkOfTheDay.collectAsStateWithLifecycle()
     val items = viewModel.artworks.collectAsLazyPagingItems()
 
     // Новый запрос — к началу ленты.
     LaunchedEffect(query) { gridState.scrollToItem(0) }
 
     FeedScreen(
-        search = search,
+        state = FeedUiState(
+            search = search,
+            collection = collection.takeIf { search.isBlank() },
+            color = color,
+            suggestions = suggestions,
+            artworkOfTheDay = daily.takeIf { query.isEmpty },
+        ),
         onSearchChange = viewModel::onSearchChange,
-        collection = collection.takeIf { search.isBlank() },
+        onSearchSubmit = viewModel::onSearchSubmit,
         onCollectionSelect = viewModel::onCollectionSelect,
+        onColorSelect = viewModel::onColorSelect,
         items = items,
-        onOpen = {
-            viewModel.onArtworkOpen(it)
-            onOpen(it)
+        onOpen = { artwork, origin ->
+            viewModel.onArtworkOpen(artwork)
+            onOpen(artwork, origin)
         },
         gridState = gridState,
         contentPadding = contentPadding,
@@ -111,24 +165,40 @@ fun FeedRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
-    search: String,
+    state: FeedUiState,
     onSearchChange: (String) -> Unit,
-    collection: Collection?,
+    onSearchSubmit: (String) -> Unit,
     onCollectionSelect: (Collection) -> Unit,
+    onColorSelect: (ColorFilter) -> Unit,
     items: LazyPagingItems<Artwork>,
-    onOpen: (Artwork) -> Unit,
+    onOpen: (Artwork, String) -> Unit,
     gridState: LazyStaggeredGridState,
     contentPadding: PaddingValues,
 ) {
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Header(search, onSearchChange)
+    val refresh = items.loadState.refresh
+    val empty = items.itemCount == 0
+    // Новый запрос при уже показанной ленте: не прячем её и не крутим большой кружок —
+    // тонкая полоска под поиском, а старые плитки приглушаются до прихода новых.
+    val reloading = refresh is LoadState.Loading && !empty
+    // Кружок pull-to-refresh — только если человек сам потянул ленту вниз.
+    var pulled by remember { mutableStateOf(false) }
+    LaunchedEffect(refresh) { if (refresh !is LoadState.Loading) pulled = false }
+    val dim by animateFloatAsState(if (reloading && !pulled) 0.45f else 1f, tween(250), label = "dim")
 
-        val refresh = items.loadState.refresh
-        val empty = items.itemCount == 0
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Header(state, onSearchChange, onSearchSubmit)
+        Box(Modifier.fillMaxWidth().height(3.dp)) {
+            if (reloading && !pulled) {
+                LinearProgressIndicator(Modifier.fillMaxWidth().testTag("reloading"))
+            }
+        }
+
         PullToRefreshBox(
-            // Крутилка — только когда уже есть что показывать; первая загрузка — скелет.
-            isRefreshing = refresh is LoadState.Loading && !empty,
-            onRefresh = { items.refresh() },
+            isRefreshing = pulled && reloading,
+            onRefresh = {
+                pulled = true
+                items.refresh()
+            },
             modifier = Modifier.fillMaxSize(),
         ) {
             LazyVerticalStaggeredGrid(
@@ -145,7 +215,15 @@ fun FeedScreen(
                 modifier = Modifier.fillMaxSize().testTag("feed"),
             ) {
                 item(key = "collections", span = StaggeredGridItemSpan.FullLine) {
-                    Collections(collection, onCollectionSelect)
+                    Collections(state.collection, onCollectionSelect)
+                }
+                item(key = "colors", span = StaggeredGridItemSpan.FullLine) {
+                    Colors(state.color, onColorSelect)
+                }
+                state.artworkOfTheDay?.let { daily ->
+                    item(key = "daily-${daily.id}", span = StaggeredGridItemSpan.FullLine) {
+                        ArtworkOfTheDay(daily, onClick = { onOpen(daily, ORIGIN_DAILY) }, modifier = Modifier.animateItem())
+                    }
                 }
                 when {
                     empty && refresh is LoadState.Loading -> skeleton()
@@ -168,7 +246,11 @@ fun FeedScreen(
                 }
                 items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
                     items[index]?.let { artwork ->
-                        ArtworkTile(artwork, onClick = { onOpen(artwork) }, modifier = Modifier.animateItem())
+                        ArtworkTile(
+                            artwork,
+                            onClick = { onOpen(artwork, ORIGIN_TILE) },
+                            modifier = Modifier.animateItem().graphicsLayer { alpha = dim },
+                        )
                     }
                 }
                 if (!empty) item(key = "footer", span = StaggeredGridItemSpan.FullLine) { Footer(items) }
@@ -178,18 +260,23 @@ fun FeedScreen(
 }
 
 @Composable
-private fun Header(search: String, onSearchChange: (String) -> Unit) {
+private fun Header(state: FeedUiState, onSearchChange: (String) -> Unit, onSearchSubmit: (String) -> Unit) {
     val focus = LocalFocusManager.current
+    var focused by remember { mutableStateOf(false) }
     // На широком экране (планшет, альбомная) название и поиск — в одну строку: высота дороже.
     val wide = LocalConfiguration.current.screenWidthDp >= 600
+    val submit = { text: String ->
+        onSearchSubmit(text)
+        focus.clearFocus()
+    }
     val field: @Composable (Modifier) -> Unit = { modifier ->
         TextField(
-            value = search,
+            value = state.search,
             onValueChange = onSearchChange,
             placeholder = { Text(stringResource(R.string.search_hint)) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
-                if (search.isNotEmpty()) {
+                if (state.search.isNotEmpty()) {
                     IconButton(onClick = { onSearchChange("") }) {
                         Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.search_clear))
                     }
@@ -197,7 +284,7 @@ private fun Header(search: String, onSearchChange: (String) -> Unit) {
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { focus.clearFocus() }),
+            keyboardActions = KeyboardActions(onSearch = { submit(state.search) }),
             shape = RoundedCornerShape(28.dp),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
@@ -205,20 +292,47 @@ private fun Header(search: String, onSearchChange: (String) -> Unit) {
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
             ),
-            modifier = modifier.testTag("search"),
+            modifier = modifier.onFocusChanged { focused = it.isFocused }.testTag("search"),
         )
     }
     val title = @Composable { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) }
-    val padding = Modifier.statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = if (wide) 8.dp else 12.dp, bottom = 4.dp)
-    if (wide) {
-        Row(padding, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            title()
-            field(Modifier.weight(1f))
-        }
-    } else {
-        Column(padding) {
+    Column(Modifier.statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = if (wide) 8.dp else 12.dp, bottom = 4.dp)) {
+        if (wide) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                title()
+                field(Modifier.weight(1f))
+            }
+        } else {
             title()
             field(Modifier.fillMaxWidth().padding(top = 12.dp))
+        }
+        // Подсказки музея (художники, названия) — пока поле в фокусе.
+        AnimatedVisibility(
+            visible = focused && state.suggestions.isNotEmpty(),
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            Column(
+                Modifier
+                    .padding(top = 6.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .testTag("suggestions"),
+            ) {
+                state.suggestions.forEach { s ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { submit(s) }
+                            .padding(horizontal = 20.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                        Text(s, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 14.dp))
+                        Icon(Icons.Outlined.NorthWest, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -232,6 +346,116 @@ private fun Collections(selected: Collection?, onSelect: (Collection) -> Unit) {
                 onClick = { onSelect(c) },
                 label = { Text(stringResource(c.title)) },
             )
+        }
+    }
+}
+
+/** Поиск по цвету: кружки-образцы; выбранный — с галочкой и обводкой. */
+@Composable
+private fun Colors(selected: ColorFilter?, onSelect: (ColorFilter) -> Unit) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        contentPadding = PaddingValues(vertical = 2.dp),
+    ) {
+        item {
+            Text(
+                stringResource(R.string.by_color),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 4.dp),
+            )
+        }
+        items(ColorFilter.entries, key = { it.name }) { c ->
+            val isSelected = c == selected
+            val scale by animateFloatAsState(if (isSelected) 1.15f else 1f, label = "swatch")
+            val name = stringResource(c.title())
+            Box(
+                Modifier
+                    .size(34.dp)
+                    .graphicsLayer { scaleX = scale; scaleY = scale }
+                    .clip(CircleShape)
+                    .background(Color(c.swatch))
+                    .border(
+                        width = if (isSelected) 3.dp else 1.dp,
+                        color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                        shape = CircleShape,
+                    )
+                    .clickable(role = Role.Checkbox) { onSelect(c) }
+                    .semantics {
+                        contentDescription = name
+                        this.selected = isSelected
+                    }
+                    .testTag("color-${c.name}"),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSelected) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+fun ColorFilter.title(): Int = when (this) {
+    ColorFilter.Red -> R.string.color_red
+    ColorFilter.Orange -> R.string.color_orange
+    ColorFilter.Yellow -> R.string.color_yellow
+    ColorFilter.Green -> R.string.color_green
+    ColorFilter.Teal -> R.string.color_teal
+    ColorFilter.Blue -> R.string.color_blue
+    ColorFilter.Purple -> R.string.color_purple
+    ColorFilter.Dark -> R.string.color_dark
+}
+
+/**
+ * «Картина дня» — большая карточка над лентой: картинка во всю ширину, снизу затемнение
+ * и подпись. Тот же shared element, что у плитки: картина «перелетает» на свой экран.
+ */
+@Composable
+private fun ArtworkOfTheDay(artwork: Artwork, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(20.dp)
+    Box(
+        modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 4.dp)
+            .clip(shape)
+            .clickable(onClick = onClick)
+            .testTag("artwork-of-the-day"),
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalPlatformContext.current)
+                .data(artwork.imageUrl)
+                .memoryCacheKey(artwork.imageUrl)
+                .build(),
+            contentDescription = artwork.altText ?: artwork.displayTitle(),
+            placeholder = rememberPlaceholder(artwork),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(artwork.aspectRatio.coerceIn(1.1f, 1.8f))
+                .sharedArtworkImage(artwork.id, ORIGIN_DAILY)
+                .clip(shape)
+                .background(artwork.backdrop(MaterialTheme.colorScheme.surfaceVariant)),
+        )
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.75f))),
+        )
+        Column(Modifier.align(Alignment.BottomStart).padding(18.dp)) {
+            Text(
+                stringResource(R.string.artwork_of_the_day).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.85f),
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                artwork.displayTitle(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            artwork.artist?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f)) }
         }
     }
 }

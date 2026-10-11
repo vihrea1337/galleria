@@ -120,6 +120,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.paging.testing)
+    testImplementation(libs.okhttp.mockwebserver)
     // Room in-memory в JVM-тестах.
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)

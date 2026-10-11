@@ -43,4 +43,23 @@
     <string name="favorites_empty_hint">Отмечайте ♥ картины, которые понравились, — они будут здесь, даже без интернета.</string>
     <string name="favorite_removed">Убрано из избранного</string>
     <string name="undo">Отменить</string>
+    <string name="by_color">Цвет</string>
+    <string name="color_red">Красный</string>
+    <string name="color_orange">Оранжевый</string>
+    <string name="color_yellow">Жёлтый</string>
+    <string name="color_green">Зелёный</string>
+    <string name="color_teal">Бирюзовый</string>
+    <string name="color_blue">Синий</string>
+    <string name="color_purple">Фиолетовый</string>
+    <string name="color_dark">Тёмный</string>
+    <string name="artwork_of_the_day">Картина дня</string>
+    <string name="more_by_artist">Ещё у художника: %1$s</string>
+    <string name="more_by_artist_unknown">Ещё у художника</string>
+    <string name="all_works">Все работы</string>
+    <string name="similar_in_color">Похожие по цвету · %1$s</string>
+    <string name="on_view">В экспозиции · %1$s</string>
+    <string name="artist_works">Работы</string>
+    <string name="artist_bio_more">Читать дальше</string>
+    <string name="artist_bio_less">Свернуть</string>
+    <string name="artist_error">Не удалось загрузить художника</string>
 </resources>

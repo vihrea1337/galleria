@@ -25,6 +25,9 @@ data class Artwork(
     override fun hashCode() = id.hashCode()
 }
 
+/** Цвет в HSL, как его хранит музей: h 0–360, s и l — 0–100. */
+data class Hsl(val h: Int, val s: Int, val l: Int)
+
 /** Подробности для экрана картины. */
 data class ArtworkDetails(
     val artwork: Artwork,
@@ -37,4 +40,17 @@ data class ArtworkDetails(
     val credit: String?,
     /** Описание музея — уже обычный текст (из HTML). */
     val description: String?,
+    val artistId: Long? = null,
+    val color: Hsl? = null,
+    val type: String? = null,
+    /** «Gallery 243», если работа сейчас выставлена в музее. */
+    val onViewIn: String? = null,
+)
+
+data class Artist(
+    val id: Long,
+    val name: String,
+    /** «1840–1926», «род. 1952» — уже собрано для показа; null — годы неизвестны. */
+    val years: String?,
+    val bio: String?,
 )

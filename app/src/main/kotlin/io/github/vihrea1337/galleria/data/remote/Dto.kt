@@ -41,6 +41,23 @@ data class ArtworkDto(
     val description: String? = null,
     @SerialName("style_title") val styleTitle: String? = null,
     @SerialName("department_title") val departmentTitle: String? = null,
+    @SerialName("artist_id") val artistId: Long? = null,
+    @SerialName("artwork_type_title") val artworkType: String? = null,
+    @SerialName("is_on_view") val isOnView: Boolean? = null,
+    @SerialName("gallery_title") val galleryTitle: String? = null,
+)
+
+@Serializable
+data class ArtistResponseDto(val data: ArtistDto)
+
+@Serializable
+data class ArtistDto(
+    val id: Long,
+    val title: String? = null,
+    @SerialName("birth_date") val birthDate: Int? = null,
+    @SerialName("death_date") val deathDate: Int? = null,
+    /** HTML. */
+    val description: String? = null,
 )
 
 @Serializable

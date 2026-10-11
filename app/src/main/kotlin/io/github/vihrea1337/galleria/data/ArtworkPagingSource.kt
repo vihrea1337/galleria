@@ -18,7 +18,7 @@ import retrofit2.HttpException
  */
 class ArtworkPagingSource(
     private val api: ArticApi,
-    private val query: String?,
+    private val query: SearchQuery,
 ) : PagingSource<Int, Artwork>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Artwork> {
@@ -27,7 +27,7 @@ class ArtworkPagingSource(
         // ключ — номер страницы, и разный размер сдвинул бы страницы друг относительно друга.
         val limit = params.loadSize.coerceAtMost(MAX_PAGE)
         return try {
-            val response = api.search(query = query?.trim()?.takeIf { it.isNotEmpty() }, page = page, limit = limit)
+            val response = api.search(query.toParams(page = page, limit = limit, fields = ArticApi.LIST_FIELDS))
             val items = response.data.mapNotNull { it.toArtwork() }
             val loaded = page * limit
             val reachedEnd = response.data.isEmpty() ||

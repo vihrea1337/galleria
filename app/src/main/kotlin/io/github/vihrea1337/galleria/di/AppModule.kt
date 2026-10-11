@@ -14,10 +14,15 @@ import io.github.vihrea1337.galleria.data.ArtworkRepositoryImpl
 import io.github.vihrea1337.galleria.data.local.FavoriteDao
 import io.github.vihrea1337.galleria.data.local.GalleriaDatabase
 import io.github.vihrea1337.galleria.data.remote.ArticApi
+import io.github.vihrea1337.galleria.data.remote.CacheApiResponses
+import io.github.vihrea1337.galleria.data.remote.StaleIfError
+import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -28,14 +33,17 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 object AppModule {
 
     /**
-     * Один OkHttp на API и на картинки (Coil — GalleriaApp): общий пул соединений и кэш.
+     * Один OkHttp на API и на картинки (Coil — GalleriaApp): общий пул соединений.
      * Музей просит представляться — заголовок AIC-User-Agent с названием и контактом.
+     * HTTP-кэш ответов API + «устаревшее при ошибке» — data/remote/ResilientCache.kt.
      */
     @Provides
     @Singleton
-    fun okHttp(): OkHttpClient = OkHttpClient.Builder()
+    fun okHttp(@ApplicationContext context: Context): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
+        // Поиск музея под нагрузкой отвечает по 10+ секунд — не обрываем раньше времени.
+        .readTimeout(30, TimeUnit.SECONDS)
+        .cache(Cache(File(context.cacheDir, "http-api"), 20L * 1024 * 1024))
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
@@ -43,6 +51,8 @@ object AppModule {
                     .build(),
             )
         }
+        .addInterceptor(StaleIfError())
+        .addNetworkInterceptor(CacheApiResponses(apiHost = ArticApi.BASE_URL.toHttpUrl().host))
         .build()
 
     @Provides

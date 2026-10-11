@@ -19,9 +19,12 @@ import okhttp3.OkHttpClient
 class GalleriaApp : Application(), SingletonImageLoader.Factory {
     @Inject lateinit var okHttp: OkHttpClient
 
+    /** Клиент картинок: общий пул соединений, но без HTTP-кэша OkHttp — у Coil свой дисковый кэш. */
+    private val imageClient by lazy { okHttp.newBuilder().cache(null).build() }
+
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)
-            .components { add(OkHttpNetworkFetcherFactory(callFactory = { okHttp })) }
+            .components { add(OkHttpNetworkFetcherFactory(callFactory = { imageClient })) }
             .crossfade(true)
             .build()
 }

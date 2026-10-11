@@ -45,4 +45,23 @@
     <string name="favorites_empty_hint">Tap ♥ on artworks you like — they’ll be here, even offline.</string>
     <string name="favorite_removed">Removed from favorites</string>
     <string name="undo">Undo</string>
+    <string name="by_color">Color</string>
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_teal">Turquoise</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_dark">Dark</string>
+    <string name="artwork_of_the_day">Artwork of the day</string>
+    <string name="more_by_artist">More by %1$s</string>
+    <string name="more_by_artist_unknown">More by the artist</string>
+    <string name="all_works">All works</string>
+    <string name="similar_in_color">Similar in color · %1$s</string>
+    <string name="on_view">On view · %1$s</string>
+    <string name="artist_works">Works</string>
+    <string name="artist_bio_more">Read more</string>
+    <string name="artist_bio_less">Show less</string>
+    <string name="artist_error">Couldn’t load the artist</string>
 </resources>
