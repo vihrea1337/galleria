@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -179,8 +180,9 @@ fun FeedScreen(
 @Composable
 private fun Header(search: String, onSearchChange: (String) -> Unit) {
     val focus = LocalFocusManager.current
-    Column(Modifier.statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
-        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
+    // На широком экране (планшет, альбомная) название и поиск — в одну строку: высота дороже.
+    val wide = LocalConfiguration.current.screenWidthDp >= 600
+    val field: @Composable (Modifier) -> Unit = { modifier ->
         TextField(
             value = search,
             onValueChange = onSearchChange,
@@ -203,8 +205,21 @@ private fun Header(search: String, onSearchChange: (String) -> Unit) {
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
             ),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("search"),
+            modifier = modifier.testTag("search"),
         )
+    }
+    val title = @Composable { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium) }
+    val padding = Modifier.statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = if (wide) 8.dp else 12.dp, bottom = 4.dp)
+    if (wide) {
+        Row(padding, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            title()
+            field(Modifier.weight(1f))
+        }
+    } else {
+        Column(padding) {
+            title()
+            field(Modifier.fillMaxWidth().padding(top = 12.dp))
+        }
     }
 }
 

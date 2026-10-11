@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -93,9 +94,12 @@ private fun HomeScreen(onOpen: (Long) -> Unit) {
     // «Назад» из «Избранного» — сначала в «Галерею», и только потом выход.
     BackHandler(enabled = tab != Tab.Gallery) { tab = Tab.Gallery }
 
-    // Телефон — нижняя панель, планшет/альбомная — боковая (rail). Под rail контент
+    // Телефон — нижняя панель, планшет и альбомная — боковая (rail). Правило по умолчанию
+    // оставляет нижнюю панель на телефоне в альбомной (там мала высота) — а высоты как раз
+    // и не хватает, поэтому решаем по ширине окна: от 600 dp — rail. Под rail контент
     // доходит до низа экрана, и отступ от системной навигации ему нужен свой.
-    val layout = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+    val wide = LocalConfiguration.current.screenWidthDp >= 600
+    val layout = if (wide) NavigationSuiteType.NavigationRail else NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
     val bottomInset = if (layout == NavigationSuiteType.NavigationBar) PaddingValues() else WindowInsets.navigationBars.asPaddingValues()
 
     NavigationSuiteScaffold(
