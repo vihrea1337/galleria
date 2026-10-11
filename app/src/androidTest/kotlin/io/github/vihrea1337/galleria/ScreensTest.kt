@@ -116,7 +116,7 @@ class ScreensTest {
         val submitted = mutableListOf<String>()
         feed(listOf(artwork(1, "Water Lilies")), onSubmit = { submitted += it }, suggestions = listOf("Claude Monet", "Piet Mondrian"))
         compose.onNodeWithTag("search").performClick()
-        compose.onNodeWithText("Claude Monet").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("suggestion-Claude Monet").assertIsDisplayed().performClick()
         assertEquals(listOf("Claude Monet"), submitted)
     }
 

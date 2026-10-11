@@ -111,6 +111,9 @@ dependencies {
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
 
+    // Виджет «Картина дня» на рабочий стол.
+    implementation(libs.glance.appwidget)
+
     // Избранное — в Room (работает без сети).
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

@@ -16,6 +16,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Galleria.Splash"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -23,6 +24,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".widget.ArtworkOfTheDayWidgetReceiver"
+            android:exported="true"
+            android:label="@string/artwork_of_the_day">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/artwork_of_the_day_widget" />
+        </receiver>
     </application>
 
 </manifest>

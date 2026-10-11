@@ -23,6 +23,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,6 +39,7 @@ import io.github.vihrea1337.galleria.R
 import io.github.vihrea1337.galleria.ui.common.LocalNavAnimatedVisibilityScope
 import io.github.vihrea1337.galleria.ui.common.LocalSharedTransitionScope
 import io.github.vihrea1337.galleria.ui.common.ORIGIN_IMMERSIVE
+import io.github.vihrea1337.galleria.ui.common.ORIGIN_WIDGET
 import io.github.vihrea1337.galleria.ui.common.ORIGIN_TILE
 import io.github.vihrea1337.galleria.ui.immersive.ImmersiveRoute
 import io.github.vihrea1337.galleria.ui.artist.ArtistScreenRoute
@@ -80,8 +82,15 @@ enum class Tab(@StringRes val label: Int, val icon: ImageVector, val selectedIco
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun GalleriaNavHost() {
+fun GalleriaNavHost(artworkToOpen: Long? = null, onArtworkOpened: () -> Unit = {}) {
     val navController = rememberNavController()
+    // Открыли с виджета — сразу на экран этой картины (ленту под ним, «Назад» — в неё).
+    LaunchedEffect(artworkToOpen) {
+        artworkToOpen?.let {
+            navController.navigate(Detail(it, ORIGIN_WIDGET))
+            onArtworkOpened()
+        }
+    }
     SharedTransitionLayout {
         CompositionLocalProvider(LocalSharedTransitionScope provides this) {
             NavHost(navController, startDestination = Home) {

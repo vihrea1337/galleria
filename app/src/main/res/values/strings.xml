@@ -69,4 +69,7 @@
     <string name="immersive_pause">Pause</string>
     <string name="immersive_play">Play</string>
     <string name="immersive_hint">Swipe up for the next one · tap for details</string>
+    <string name="widget_description">A new masterpiece on your home screen every day</string>
+    <string name="widget_offline">Open Galleria to load</string>
+    <string name="widget_add">Add to home screen</string>
 </resources>

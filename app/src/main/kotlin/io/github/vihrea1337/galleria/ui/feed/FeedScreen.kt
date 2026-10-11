@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddToHomeScreen
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudOff
@@ -54,6 +55,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -76,6 +78,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -109,6 +112,8 @@ import io.github.vihrea1337.galleria.ui.common.displayTitle
 import io.github.vihrea1337.galleria.ui.common.message
 import io.github.vihrea1337.galleria.ui.common.rememberPlaceholder
 import io.github.vihrea1337.galleria.ui.common.sharedArtworkImage
+import io.github.vihrea1337.galleria.widget.canPinWidget
+import io.github.vihrea1337.galleria.widget.requestPinWidget
 
 /** Плитки шириной от 160 dp: 2 колонки на телефоне, 3–5 на планшете — по ширине окна. */
 val GridCells = StaggeredGridCells.Adaptive(160.dp)
@@ -340,7 +345,8 @@ private fun Header(state: FeedUiState, onSearchChange: (String) -> Unit, onSearc
                         Modifier
                             .fillMaxWidth()
                             .clickable { submit(s) }
-                            .padding(horizontal = 20.dp, vertical = 12.dp),
+                            .padding(horizontal = 20.dp, vertical = 12.dp)
+                            .testTag("suggestion-$s"),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(Icons.Outlined.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
@@ -457,6 +463,17 @@ private fun ArtworkOfTheDay(artwork: Artwork, onClick: () -> Unit, modifier: Mod
                 .matchParentSize()
                 .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.75f))),
         )
+        // «На рабочий стол» — та же картина каждый день в виджете.
+        val context = LocalContext.current
+        if (remember { canPinWidget(context) }) {
+            FilledTonalIconButton(
+                onClick = { requestPinWidget(context) },
+                colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = Color.Black.copy(alpha = 0.4f), contentColor = Color.White),
+                modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).testTag("pin-widget"),
+            ) {
+                Icon(Icons.Outlined.AddToHomeScreen, contentDescription = stringResource(R.string.widget_add))
+            }
+        }
         Column(Modifier.align(Alignment.BottomStart).padding(18.dp)) {
             Text(
                 stringResource(R.string.artwork_of_the_day).uppercase(),

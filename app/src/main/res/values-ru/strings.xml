@@ -67,4 +67,7 @@
     <string name="immersive_pause">Пауза</string>
     <string name="immersive_play">Воспроизвести</string>
     <string name="immersive_hint">Листайте вверх · нажмите — подробности</string>
+    <string name="widget_description">Каждый день — новая картина на рабочем столе</string>
+    <string name="widget_offline">Откройте Galleria, чтобы загрузить</string>
+    <string name="widget_add">Добавить на рабочий стол</string>
 </resources>
