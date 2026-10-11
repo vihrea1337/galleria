@@ -1,0 +1,13 @@
+<resources>
+    <!-- Окно до первого кадра Compose — цвета «бумаги», без вспышки белого/чёрного. -->
+    <style name="Theme.Galleria" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+    </style>
+
+    <!-- Splash Screen API: одна заставка на всех версиях Android. -->
+    <style name="Theme.Galleria.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/paper</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.Galleria</item>
+    </style>
+</resources>

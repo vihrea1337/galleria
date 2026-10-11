@@ -1,0 +1,42 @@
+{
+ "data": {
+  "id": 16568,
+  "title": "Water Lilies",
+  "thumbnail": {
+   "lqip": "data:image/gif;base64,R0lGODlhBQAFAPQAAEZcaFFfdVtqbk9ldFBlcVFocllrcFlrd11rdl9sdFZtf15wcWV0d2R2eGByfmd6eGl6e2t9elZxiGF4kWB4kmJ9kGJ8lWeCkWSAnQAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAALAAAAAAFAAUAAAUVoJBADXI4TLRMWHU9hmRRCjAURBACADs=",
+   "width": 8808,
+   "height": 8460,
+   "alt_text": "Painting of a pond seen up close spotted with thickly painted pink and white water lilies and a shadow across the top third of the picture."
+  },
+  "date_display": "1906",
+  "artist_display": "Claude Monet (French, 1840–1926)",
+  "place_of_origin": "France",
+  "description": "<p>Little did Claude Monet know that the water garden he created three years after buying his Giverny, France, property in 1890 would become his primary inspiration over the next two and a half decades. These paintings, numbering around 250, mark Monet’s artistic journey from more straightforward depictions of the pond spanned by the wooden Japanese bridge to the monumental and near-abstract series on the water lily theme he made in preparation for his murals at the Musée de l’Orangerie in Paris between 1914 and 1926.</p>\n<p><em> Water Lilies</em>, one of a group of paintings on the subject made between 1903 and 1908, comes at the midpoint of Monet’s developing style and spatial experimentations. The nearly square format underscores his move away from painting the conventional zones of land, sky, and water to focus solely on the water’s surface. Clusters of water lilies at bottom left and top right frame a watery path, while the water’s surface reflects trees and clouds. Although the dreamlike quality of floating forms might seem to be a natural development for the artist, he considered these works “an obsession,” a sentiment borne out by technical examinations on the Art Institute’s canvas, revealing many significant changes made to the painting in progress.</p>\n",
+  "dimensions": "89.9 × 94.1 cm (35 3/8 × 37 1/16 in.); Framed: 103.2 × 107 × 5.8 cm (40 5/8 × 42 1/8 × 2 1/4 in.)",
+  "medium_display": "Oil on canvas",
+  "credit_line": "Mr. and Mrs. Martin A. Ryerson Collection",
+  "color": {
+   "h": 197,
+   "l": 37,
+   "s": 41,
+   "percentage": 0.08651191298367858,
+   "population": 590
+  },
+  "department_title": "Painting and Sculpture of Europe",
+  "artist_title": "Claude Monet",
+  "style_title": "Impressionism",
+  "image_id": "3c27b499-af56-f0d5-93b5-a7f2f1ad5813"
+ },
+ "info": {
+  "license_text": "The `description` field in this response is licensed under a Creative Commons Attribution 4.0 Generic License (CC-By) and the Terms and Conditions of artic.edu. All other data in this response is licensed under a Creative Commons Zero (CC0) 1.0 designation and the Terms and Conditions of artic.edu.",
+  "license_links": [
+   "https://creativecommons.org/publicdomain/zero/1.0/",
+   "https://www.artic.edu/terms"
+  ],
+  "version": "1.16"
+ },
+ "config": {
+  "iiif_url": "https://www.artic.edu/iiif/2",
+  "website_url": "http://www.artic.edu"
+ }
+}

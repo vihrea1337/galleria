@@ -6,7 +6,7 @@ import retrofit2.http.Query
 
 /**
  * API Чикагского института искусств (https://api.artic.edu/docs/). Бесплатный, без ключа;
- * музей просит представляться заголовком `AIC-User-Agent` — его добавляет OkHttp (di/NetworkModule).
+ * музей просит представляться заголовком `AIC-User-Agent` — его добавляет OkHttp (di/AppModule).
  *
  * Лента и поиск — один эндпоинт `/artworks/search`: только работы в общественном достоянии
  * (`query[term][is_public_domain]=true`) — у всех есть картинка, и их можно показывать.

@@ -16,6 +16,7 @@ fun iiifUrl(imageId: String, width: Int): String = "$IIIF_BASE/$imageId/full/$wi
 private const val IIIF_BASE = "https://www.artic.edu/iiif/2"
 private const val THUMB_WIDTH = 400
 private const val FULL_WIDTH = 843
+private const val ZOOM_WIDTH = 1686
 private const val DEFAULT_ASPECT = 0.8f
 
 /** null — работа без картинки (в ленте их не показываем). */
@@ -25,11 +26,13 @@ fun ArtworkDto.toArtwork(): Artwork? {
     val h = thumbnail?.height
     return Artwork(
         id = id,
-        title = title?.takeIf { it.isNotBlank() } ?: "Без названия",
+        // Пусто — «Без названия» подставит UI на языке устройства.
+        title = title?.trim().orEmpty(),
         artist = artistTitle,
         date = dateDisplay,
         thumbUrl = iiifUrl(image, THUMB_WIDTH),
         imageUrl = iiifUrl(image, FULL_WIDTH),
+        zoomUrl = iiifUrl(image, ZOOM_WIDTH),
         aspectRatio = if (w != null && h != null && w > 0 && h > 0) {
             // Слишком вытянутые (свитки, панорамы) ограничиваем — иначе плитка в ленте нелепая.
             (w.toFloat() / h).coerceIn(MIN_ASPECT, MAX_ASPECT)

@@ -23,6 +23,7 @@ data class FavoriteEntity(
     val date: String?,
     val thumbUrl: String,
     val imageUrl: String,
+    val zoomUrl: String,
     val aspectRatio: Float,
     val placeholder: ByteArray?,
     val dominantColor: Long?,
@@ -31,9 +32,9 @@ data class FavoriteEntity(
     val addedAt: Long,
 )
 
-fun Artwork.toFavorite(now: Long) = FavoriteEntity(id, title, artist, date, thumbUrl, imageUrl, aspectRatio, placeholder, dominantColor, altText, now)
+fun Artwork.toFavorite(now: Long) = FavoriteEntity(id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText, now)
 
-fun FavoriteEntity.toArtwork() = Artwork(id, title, artist, date, thumbUrl, imageUrl, aspectRatio, placeholder, dominantColor, altText)
+fun FavoriteEntity.toArtwork() = Artwork(id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText)
 
 @Dao
 interface FavoriteDao {

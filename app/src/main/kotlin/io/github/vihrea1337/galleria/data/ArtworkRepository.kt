@@ -25,6 +25,13 @@ interface ArtworkRepository {
     fun favorites(): Flow<List<Artwork>>
     fun isFavorite(id: Long): Flow<Boolean>
     suspend fun setFavorite(artwork: Artwork, favorite: Boolean)
+
+    /**
+     * Картина, по которой только что нажали в ленте/избранном: экран картины берёт её
+     * сразу (картинка, название, цвет — без ожидания сети), а подробности догружает.
+     */
+    fun remember(artwork: Artwork)
+    fun remembered(id: Long): Artwork?
 }
 
 @Singleton
@@ -57,7 +64,22 @@ class ArtworkRepositoryImpl @Inject constructor(
 
     override fun isFavorite(id: Long): Flow<Boolean> = favoritesDao.observeIsFavorite(id)
 
+    // Несколько последних — хватает на «открыл, вернулся, открыл другую».
+    private val recent = object : LinkedHashMap<Long, Artwork>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Artwork>?) = size > RECENT_LIMIT
+    }
+
+    override fun remember(artwork: Artwork) {
+        synchronized(recent) { recent[artwork.id] = artwork }
+    }
+
+    override fun remembered(id: Long): Artwork? = synchronized(recent) { recent[id] }
+
     override suspend fun setFavorite(artwork: Artwork, favorite: Boolean) {
         if (favorite) favoritesDao.insert(artwork.toFavorite(clock.millis())) else favoritesDao.delete(artwork.id)
+    }
+
+    private companion object {
+        const val RECENT_LIMIT = 20
     }
 }

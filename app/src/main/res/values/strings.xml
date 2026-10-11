@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Galleria</string>
+
+    <string name="tab_gallery">Gallery</string>
+    <string name="tab_favorites">Favorites</string>
+
+    <string name="search_hint">Search artworks, artists…</string>
+    <string name="search_clear">Clear search</string>
+
+    <string name="collection_all">All</string>
+    <string name="collection_impressionism">Impressionism</string>
+    <string name="collection_japan">Japan</string>
+    <string name="collection_portraits">Portraits</string>
+    <string name="collection_landscapes">Landscapes</string>
+    <string name="collection_still_life">Still life</string>
+    <string name="collection_antiquity">Antiquity</string>
+
+    <string name="untitled">Untitled</string>
+    <string name="error_offline">No connection</string>
+    <string name="error_server">The museum server is unavailable (%1$d)</string>
+    <string name="error_unknown">Something went wrong</string>
+    <string name="retry">Retry</string>
+    <string name="feed_error_title">Couldn’t load the gallery</string>
+    <string name="feed_empty_title">Nothing found</string>
+    <string name="feed_empty_hint">Try another word — for example, an artist’s name or “sunflowers”.</string>
+    <string name="feed_end">That’s all for this query — refine the search to see more.</string>
+
+    <string name="back">Back</string>
+    <string name="share">Share</string>
+    <string name="favorite_add">Add to favorites</string>
+    <string name="favorite_remove">Remove from favorites</string>
+    <string name="open_fullscreen">Open full screen</string>
+    <string name="close">Close</string>
+    <string name="fact_medium">Medium</string>
+    <string name="fact_dimensions">Dimensions</string>
+    <string name="fact_origin">Place</string>
+    <string name="fact_style">Style</string>
+    <string name="fact_department">Department</string>
+    <string name="fact_credit">Credit</string>
+    <string name="about_artwork">About the work</string>
+    <string name="source_note">Art Institute of Chicago · public domain</string>
+    <string name="details_error">Couldn’t load details</string>
+
+    <string name="favorites_empty_title">No favorites yet</string>
+    <string name="favorites_empty_hint">Tap ♥ on artworks you like — they’ll be here, even offline.</string>
+    <string name="favorite_removed">Removed from favorites</string>
+    <string name="undo">Undo</string>
+</resources>

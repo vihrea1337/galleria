@@ -1,0 +1,46 @@
+<resources>
+    <string name="tab_gallery">Галерея</string>
+    <string name="tab_favorites">Избранное</string>
+
+    <string name="search_hint">Картины, художники…</string>
+    <string name="search_clear">Очистить поиск</string>
+
+    <string name="collection_all">Все</string>
+    <string name="collection_impressionism">Импрессионизм</string>
+    <string name="collection_japan">Япония</string>
+    <string name="collection_portraits">Портреты</string>
+    <string name="collection_landscapes">Пейзажи</string>
+    <string name="collection_still_life">Натюрморт</string>
+    <string name="collection_antiquity">Античность</string>
+
+    <string name="untitled">Без названия</string>
+    <string name="error_offline">Нет связи</string>
+    <string name="error_server">Сервер музея недоступен (%1$d)</string>
+    <string name="error_unknown">Что-то пошло не так</string>
+    <string name="retry">Повторить</string>
+    <string name="feed_error_title">Не удалось загрузить галерею</string>
+    <string name="feed_empty_title">Ничего не нашлось</string>
+    <string name="feed_empty_hint">Попробуйте другое слово — например, имя художника или «sunflowers». Музей ищет по-английски.</string>
+    <string name="feed_end">Это всё по запросу — уточните поиск, чтобы увидеть больше.</string>
+
+    <string name="back">Назад</string>
+    <string name="share">Поделиться</string>
+    <string name="favorite_add">В избранное</string>
+    <string name="favorite_remove">Убрать из избранного</string>
+    <string name="open_fullscreen">Открыть на весь экран</string>
+    <string name="close">Закрыть</string>
+    <string name="fact_medium">Техника</string>
+    <string name="fact_dimensions">Размеры</string>
+    <string name="fact_origin">Место</string>
+    <string name="fact_style">Стиль</string>
+    <string name="fact_department">Отдел музея</string>
+    <string name="fact_credit">Источник</string>
+    <string name="about_artwork">О работе</string>
+    <string name="source_note">Чикагский институт искусств · общественное достояние</string>
+    <string name="details_error">Не удалось загрузить подробности</string>
+
+    <string name="favorites_empty_title">Пока пусто</string>
+    <string name="favorites_empty_hint">Отмечайте ♥ картины, которые понравились, — они будут здесь, даже без интернета.</string>
+    <string name="favorite_removed">Убрано из избранного</string>
+    <string name="undo">Отменить</string>
+</resources>
