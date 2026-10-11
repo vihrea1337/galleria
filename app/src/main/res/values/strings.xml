@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Galleria</string>
+    <string name="app_name" translatable="false">Galleria</string>
 
     <string name="tab_gallery">Gallery</string>
     <string name="tab_favorites">Favorites</string>

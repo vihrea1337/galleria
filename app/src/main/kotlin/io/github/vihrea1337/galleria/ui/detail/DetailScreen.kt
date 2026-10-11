@@ -33,10 +33,12 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -106,6 +108,9 @@ fun DetailScreen(
     val tint = artwork?.backdrop(base) ?: base
     val top = lerp(base, tint, if (isSystemInDarkTheme()) 0.38f else 0.32f)
 
+    // У экрана нет Surface (фон — свой градиент), поэтому цвет текста и значков задаём сами:
+    // иначе Compose берёт чёрный по умолчанию, и в тёмной теме заголовок не виден.
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
     Box(
         Modifier
             .fillMaxSize()
@@ -141,6 +146,8 @@ fun DetailScreen(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
             )
         }
+    }
+
     }
 
     if (fullscreen && artwork != null) {
