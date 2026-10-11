@@ -19,6 +19,11 @@ data class Artwork(
     /** Преобладающий цвет картины, ARGB. */
     val dominantColor: Long?,
     val altText: String?,
+    /** IIIF-идентификатор картинки — для глубокого зума тайлами. */
+    val imageId: String? = null,
+    /** Размер оригинала в пикселях (у «Водяных лилий» 8808×8460) — сколько можно приближать. */
+    val fullWidth: Int? = null,
+    val fullHeight: Int? = null,
 ) {
     // ByteArray сравнивается по ссылке — для data class переопределяем по id.
     override fun equals(other: Any?) = other is Artwork && other.id == id && other.title == title

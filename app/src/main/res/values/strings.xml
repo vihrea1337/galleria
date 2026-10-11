@@ -64,4 +64,5 @@
     <string name="artist_bio_more">Read more</string>
     <string name="artist_bio_less">Show less</string>
     <string name="artist_error">Couldn’t load the artist</string>
+    <string name="zoom_detail">Detail: %1$d%% of the original</string>
 </resources>

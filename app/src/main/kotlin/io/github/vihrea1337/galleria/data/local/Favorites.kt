@@ -1,5 +1,6 @@
 package io.github.vihrea1337.galleria.data.local
 
+import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -30,11 +31,21 @@ data class FavoriteEntity(
     val altText: String?,
     /** Когда добавили — свежие сверху. */
     val addedAt: Long,
+    // Версия 2 базы: для глубокого зума (автомиграция, у старых записей — null).
+    val imageId: String? = null,
+    val fullWidth: Int? = null,
+    val fullHeight: Int? = null,
 )
 
-fun Artwork.toFavorite(now: Long) = FavoriteEntity(id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText, now)
+fun Artwork.toFavorite(now: Long) = FavoriteEntity(
+    id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText, now,
+    imageId, fullWidth, fullHeight,
+)
 
-fun FavoriteEntity.toArtwork() = Artwork(id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText)
+fun FavoriteEntity.toArtwork() = Artwork(
+    id, title, artist, date, thumbUrl, imageUrl, zoomUrl, aspectRatio, placeholder, dominantColor, altText,
+    imageId, fullWidth, fullHeight,
+)
 
 @Dao
 interface FavoriteDao {
@@ -51,7 +62,16 @@ interface FavoriteDao {
     suspend fun delete(id: Long)
 }
 
-@Database(entities = [FavoriteEntity::class], version = 1, exportSchema = true)
+/**
+ * Версия 2 добавила колонки для глубокого зума. AutoMigration — Room сам сравнивает схемы
+ * из app/schemas (поэтому exportSchema = true и схемы лежат в git).
+ */
+@Database(
+    entities = [FavoriteEntity::class],
+    version = 2,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
+)
 abstract class GalleriaDatabase : RoomDatabase() {
     abstract fun favorites(): FavoriteDao
 }

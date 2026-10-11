@@ -45,6 +45,9 @@ fun ArtworkDto.toArtwork(): Artwork? {
         placeholder = thumbnail?.lqip?.let(::decodeDataUri),
         dominantColor = color?.let(::hslToArgb),
         altText = thumbnail?.altText,
+        imageId = image,
+        fullWidth = w?.takeIf { it > 0 },
+        fullHeight = h?.takeIf { it > 0 },
     )
 }
 

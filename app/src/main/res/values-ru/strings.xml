@@ -62,4 +62,5 @@
     <string name="artist_bio_more">Читать дальше</string>
     <string name="artist_bio_less">Свернуть</string>
     <string name="artist_error">Не удалось загрузить художника</string>
+    <string name="zoom_detail">Детализация: %1$d%% от оригинала</string>
 </resources>
